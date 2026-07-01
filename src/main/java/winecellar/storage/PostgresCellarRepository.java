@@ -5,12 +5,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import winecellar.model.Bottle;
+import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Value;
 
+@Component
 public class PostgresCellarRepository implements CellarRepository {
 
     private final String url;
 
-    public PostgresCellarRepository(String url) {
+    public PostgresCellarRepository(@Value("${spring.datasource.url}") String url) {
         this.url = url;
     }
 
