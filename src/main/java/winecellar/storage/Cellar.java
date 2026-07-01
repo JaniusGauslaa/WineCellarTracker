@@ -49,31 +49,4 @@ public class Cellar implements CellarRepository {
         }
         bottles.remove(index);
     }
-
-    public void save(String filename) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename));) {
-            for (Bottle bottle : bottles) {
-                writer.write(bottle.producer() + "," + bottle.name() + "," + bottle.vintage() + "," + bottle.region());
-                writer.newLine();
-            }
-
-        } catch (IOException e) {
-            System.out.println("An error occured");
-        }
-    }
-
-    public void load(String filename) {
-        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] bottleInformation = line.split(",");
-                Bottle bottle = new Bottle(bottleInformation[0], bottleInformation[1], Integer.parseInt(bottleInformation[2]), bottleInformation[3]);
-                bottles.add(bottle);
-            }
-        } catch (FileNotFoundException e) {
-            System.out.println("Starting with an empty cellar");
-        } catch (IOException e) {
-            System.out.println("An error occured");
-        }
-    }
 }   

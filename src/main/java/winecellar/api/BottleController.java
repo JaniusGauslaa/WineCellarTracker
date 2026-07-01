@@ -1,9 +1,10 @@
 package winecellar.api;
-
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import winecellar.model.Bottle;
 import winecellar.storage.CellarRepository;
+import org.springframework.http.ResponseEntity;
 
 @RestController
 public class BottleController {
@@ -33,6 +34,11 @@ public class BottleController {
     @GetMapping("/bottles/search")
     public List<Bottle> getBottlesByProducer(@RequestParam String producer) {
         return cellar.findByProducer(producer);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleBadRequest(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(e.getMessage());
     }
 
 }

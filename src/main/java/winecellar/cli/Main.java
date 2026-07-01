@@ -1,10 +1,12 @@
 package winecellar.cli;
 import java.util.Scanner;
 import winecellar.model.Bottle;
+import winecellar.model.WineType;
 import winecellar.storage.CellarRepository;
 import winecellar.storage.PostgresCellarRepository;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 public class Main {
 
@@ -46,7 +48,19 @@ public class Main {
                         System.out.print("Region: ");
                         String region = input.nextLine();
 
-                        Bottle bottle = new Bottle(producer, name, vintage, region);
+                        System.out.print("Type: ");
+                        WineType type = WineType.valueOf(input.nextLine().toUpperCase());
+
+                        System.out.print("Rating (1-100, press enter to skip): ");
+                        String rating = input.nextLine();
+
+                        Bottle bottle;
+                        if (rating.isBlank()) {
+                            bottle = new Bottle(producer, name, vintage, region, type, Optional.empty());
+                        } else {
+                            bottle = new Bottle(producer, name, vintage, region, type, Optional.of(Integer.parseInt(rating)));
+                        }
+
                         myCellar.add(bottle);
                     } catch (NumberFormatException e) {
                         System.out.println("Vintage must be a number.");

@@ -3,7 +3,8 @@
     "allow": [
       "Bash(javac Bottle.java)",
       "Bash(javac *.java)",
-      "Bash(mvn --version)"
+      "Bash(mvn --version)",
+      "WebSearch"
     ]
   }
 }

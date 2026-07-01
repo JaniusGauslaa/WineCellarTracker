@@ -3,8 +3,11 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import winecellar.model.Bottle;
+import winecellar.model.WineType;
+
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -20,11 +23,19 @@ public class PostgresCellarRepository implements CellarRepository {
     public void add(Bottle bottle) {
         try (Connection conn = DriverManager.getConnection(url);
              PreparedStatement stmt = conn.prepareStatement(
-             "INSERT INTO bottles (producer, name, vintage, region) VALUES (?, ?, ?, ?)")) {
+             "INSERT INTO bottles (producer, name, vintage, region, type, rating) VALUES (?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, bottle.producer());
             stmt.setString(2, bottle.name());
             stmt.setInt(3, bottle.vintage());
             stmt.setString(4, bottle.region());
+            stmt.setString(5, bottle.type().name());
+
+            if (bottle.rating().isPresent()) {
+                stmt.setInt(6, bottle.rating().get());
+            } else {
+                stmt.setNull(6, Types.INTEGER);
+            }
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -37,7 +48,13 @@ public class PostgresCellarRepository implements CellarRepository {
              ResultSet rs = stmt.executeQuery()) {
             List<Bottle> bottles = new ArrayList<>();
             while (rs.next()) {
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"));
+                int ratingValue = rs.getInt("rating");
+                Bottle bottle;
+                if (rs.wasNull()) {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.empty());
+                } else {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.of(ratingValue));
+                }
                 bottles.add(bottle);
             }
             return bottles;
@@ -84,7 +101,13 @@ public class PostgresCellarRepository implements CellarRepository {
             List<Bottle> bottles = new ArrayList<>();
 
             while (rs.next()) {
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"));
+                int ratingValue = rs.getInt("rating");
+                Bottle bottle;
+                if (rs.wasNull()) {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.empty());
+                } else {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.of(ratingValue));
+                }
                 bottles.add(bottle);
             }
 
@@ -102,7 +125,13 @@ public class PostgresCellarRepository implements CellarRepository {
             List<Bottle> bottles = new ArrayList<>();
 
             while (rs.next()) {
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"));
+                int ratingValue = rs.getInt("rating");
+                Bottle bottle;
+                if (rs.wasNull()) {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.empty());
+                } else {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.of(ratingValue));
+                }
                 bottles.add(bottle);
             }
 
@@ -120,7 +149,13 @@ public class PostgresCellarRepository implements CellarRepository {
             List<Bottle> bottles = new ArrayList<>();
 
             while (rs.next()) {
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"));
+                int ratingValue = rs.getInt("rating");
+                Bottle bottle;
+                if (rs.wasNull()) {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.empty());
+                } else {
+                    bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), Optional.of(ratingValue));
+                }
                 bottles.add(bottle);
             }
 
