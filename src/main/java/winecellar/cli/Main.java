@@ -51,16 +51,19 @@ public class Main {
                         System.out.print("Type: ");
                         WineType type = WineType.valueOf(input.nextLine().toUpperCase());
 
-                        System.out.print("Rating (1-100, press enter to skip): ");
-                        String rating = input.nextLine();
+                        System.out.print("Rating (1-100), press enter to skip: ");
+                        String ratingString = input.nextLine();
+                        Optional<Integer> rating = ratingString.isBlank() ? Optional.empty() : Optional.of(Integer.parseInt(ratingString));
 
-                        Bottle bottle;
-                        if (rating.isBlank()) {
-                            bottle = new Bottle(producer, name, vintage, region, type, Optional.empty());
-                        } else {
-                            bottle = new Bottle(producer, name, vintage, region, type, Optional.of(Integer.parseInt(rating)));
-                        }
+                        System.out.print("Ready Year, press enter to skip: ");
+                        String readyYearString = input.nextLine();
+                        Optional<Integer> readyYear = readyYearString.isBlank() ? Optional.empty() : Optional.of(Integer.parseInt(readyYearString));
 
+                        System.out.print("Peak Year, press enter to skip: ");
+                        String peakYearString = input.nextLine();
+                        Optional<Integer> peakYear = peakYearString.isBlank() ? Optional.empty() : Optional.of(Integer.parseInt(peakYearString));
+
+                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear);
                         myCellar.add(bottle);
                     } catch (NumberFormatException e) {
                         System.out.println("Vintage must be a number.");
