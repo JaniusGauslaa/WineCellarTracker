@@ -1,4 +1,5 @@
 package winecellar.storage;
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,6 +10,7 @@ import winecellar.model.Bottle;
 import winecellar.model.WineType;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
+import java.time.LocalDate;
 
 @Component
 public class PostgresCellarRepository implements CellarRepository {
@@ -22,7 +24,7 @@ public class PostgresCellarRepository implements CellarRepository {
     public void add(Bottle bottle) {
         try (Connection conn = DriverManager.getConnection(url);
              PreparedStatement stmt = conn.prepareStatement(
-             "INSERT INTO bottles (producer, name, vintage, region, type, rating, ready_year, peak_year) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
+             "INSERT INTO bottles (producer, name, vintage, region, type, rating, ready_year, peak_year, price, purchase_date, store) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, bottle.producer());
             stmt.setString(2, bottle.name());
             stmt.setInt(3, bottle.vintage());
@@ -47,6 +49,24 @@ public class PostgresCellarRepository implements CellarRepository {
                 stmt.setNull(8, Types.INTEGER);
             }
 
+            if (bottle.price().isPresent()) {
+                stmt.setBigDecimal(9, bottle.price().get());
+            } else {
+                stmt.setNull(9, Types.DECIMAL);
+            }
+
+            if (bottle.purchaseDate().isPresent()) {
+                stmt.setDate(10, Date.valueOf(bottle.purchaseDate().get()));
+            } else {
+                stmt.setNull(10, Types.DATE);
+            }
+
+            if (bottle.store().isPresent()) {
+                stmt.setString(11, bottle.store().get());
+            } else {
+                stmt.setNull(11, Types.VARCHAR);
+            }
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -68,7 +88,16 @@ public class PostgresCellarRepository implements CellarRepository {
                 int peakYearValue = rs.getInt("peak_year");
                 Optional<Integer> peakYear = rs.wasNull() ? Optional.empty() : Optional.of(peakYearValue);
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear);
+                BigDecimal priceValue = rs.getBigDecimal("price");
+                Optional<BigDecimal> price = rs.wasNull() ? Optional.empty() : Optional.of(priceValue);
+
+                Date purchaseDateValue = rs.getDate("purchase_date");
+                Optional<LocalDate> purchaseDate = purchaseDateValue == null ? Optional.empty() : Optional.of(purchaseDateValue.toLocalDate());
+
+                String storeValue = rs.getString("store");
+                Optional<String> store = storeValue == null ? Optional.empty() : Optional.of(storeValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store);
                 bottles.add(bottle);
             }
             return bottles;
@@ -124,7 +153,16 @@ public class PostgresCellarRepository implements CellarRepository {
                 int peakYearValue = rs.getInt("peak_year");
                 Optional<Integer> peakYear = rs.wasNull() ? Optional.empty() : Optional.of(peakYearValue);
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear);
+                BigDecimal priceValue = rs.getBigDecimal("price");
+                Optional<BigDecimal> price = rs.wasNull() ? Optional.empty() : Optional.of(priceValue);
+
+                Date purchaseDateValue = rs.getDate("purchase_date");
+                Optional<LocalDate> purchaseDate = purchaseDateValue == null ? Optional.empty() : Optional.of(purchaseDateValue.toLocalDate());
+
+                String storeValue = rs.getString("store");
+                Optional<String> store = storeValue == null ? Optional.empty() : Optional.of(storeValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store);
                 bottles.add(bottle);
             }
 
@@ -151,7 +189,16 @@ public class PostgresCellarRepository implements CellarRepository {
                 int peakYearValue = rs.getInt("peak_year");
                 Optional<Integer> peakYear = rs.wasNull() ? Optional.empty() : Optional.of(peakYearValue);
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear);
+                BigDecimal priceValue = rs.getBigDecimal("price");
+                Optional<BigDecimal> price = rs.wasNull() ? Optional.empty() : Optional.of(priceValue);
+
+                Date purchaseDateValue = rs.getDate("purchase_date");
+                Optional<LocalDate> purchaseDate = purchaseDateValue == null ? Optional.empty() : Optional.of(purchaseDateValue.toLocalDate());
+
+                String storeValue = rs.getString("store");
+                Optional<String> store = storeValue == null ? Optional.empty() : Optional.of(storeValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store);
                 bottles.add(bottle);
             }
 
@@ -178,7 +225,16 @@ public class PostgresCellarRepository implements CellarRepository {
                 int peakYearValue = rs.getInt("peak_year");
                 Optional<Integer> peakYear = rs.wasNull() ? Optional.empty() : Optional.of(peakYearValue);
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear);
+                BigDecimal priceValue = rs.getBigDecimal("price");
+                Optional<BigDecimal> price = rs.wasNull() ? Optional.empty() : Optional.of(priceValue);
+
+                Date purchaseDateValue = rs.getDate("purchase_date");
+                Optional<LocalDate> purchaseDate = purchaseDateValue == null ? Optional.empty() : Optional.of(purchaseDateValue.toLocalDate());
+
+                String storeValue = rs.getString("store");
+                Optional<String> store = storeValue == null ? Optional.empty() : Optional.of(storeValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store);
                 bottles.add(bottle);
             }
 

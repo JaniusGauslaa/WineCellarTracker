@@ -4,6 +4,10 @@ import winecellar.model.Bottle;
 import winecellar.model.WineType;
 import winecellar.storage.CellarRepository;
 import winecellar.storage.PostgresCellarRepository;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -63,12 +67,26 @@ public class Main {
                         String peakYearString = input.nextLine();
                         Optional<Integer> peakYear = peakYearString.isBlank() ? Optional.empty() : Optional.of(Integer.parseInt(peakYearString));
 
-                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear);
+                        System.out.print("Price, press enter to skip: ");
+                        String priceString = input.nextLine();
+                        Optional<BigDecimal> price = priceString.isBlank() ? Optional.empty() : Optional.of(new BigDecimal(priceString));
+
+                        System.out.print("Purchase date (YYYY-MM-DD), press enter to skip: ");
+                        String purchaseDateString = input.nextLine();
+                        Optional<LocalDate> purchaseDate = purchaseDateString.isBlank() ? Optional.empty() : Optional.of(LocalDate.parse(purchaseDateString));
+
+                        System.out.print("Store, press enter to skip: ");
+                        String storeString = input.nextLine();
+                        Optional<String> store = storeString.isBlank() ? Optional.empty() : Optional.of(storeString);
+
+                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear, price, purchaseDate, store);
                         myCellar.add(bottle);
                     } catch (NumberFormatException e) {
-                        System.out.println("Vintage must be a number.");
+                        System.out.println("Please enter a valid number.");
                     } catch (IllegalArgumentException e) {
                         System.out.println(e.getMessage());
+                    } catch (DateTimeParseException e) {
+                        System.out.println("Invalid date format. Use YYYY-MM-DD.");
                     }
 
                     break;

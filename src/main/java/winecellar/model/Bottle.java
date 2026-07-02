@@ -1,21 +1,23 @@
 package winecellar.model;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Optional;
 
-public record Bottle(String producer, String name, int vintage, String region, WineType type, Optional<Integer> rating, Optional<Integer> readyYear, Optional<Integer> peakYear) {
+public record Bottle(String producer, String name, int vintage, String region, WineType type, Optional<Integer> rating, Optional<Integer> readyYear, Optional<Integer> peakYear, Optional<BigDecimal> price, Optional<LocalDate> purchaseDate, Optional<String> store) {
 
     public Bottle {
         int currentYear = java.time.Year.now().getValue();
 
         if (producer == null || producer.isBlank()) {
-            throw new IllegalArgumentException("Producer cannot be null or blank");
+            throw new IllegalArgumentException("Producer cannot be null or blank.");
         }
 
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name cannot be null or blank");
+            throw new IllegalArgumentException("Name cannot be null or blank.");
         }
 
         if (region == null || region.isBlank()) {
-            throw new IllegalArgumentException("Region cannot be null or blank");
+            throw new IllegalArgumentException("Region cannot be null or blank.");
         }
 
         int minYear = currentYear - 100;
@@ -58,8 +60,33 @@ public record Bottle(String producer, String name, int vintage, String region, W
 
         if (readyYear.isPresent() && peakYear.isPresent()) {
             if (readyYear.get() > peakYear.get()) {
-                throw new IllegalArgumentException("readyYear cannot be later than peakYear");
+                throw new IllegalArgumentException("readyYear cannot be later than peakYear.");
             }
+        }
+
+        if (price == null) {
+            throw new IllegalArgumentException("price cannot be null.");
+        } else {
+            if (price.isPresent() && price.get().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("price cannot be less than or equal to zero.");
+            }
+        }
+
+        if (purchaseDate == null) {
+            throw new IllegalArgumentException("purchaseDate cannot be null.");
+        } else {
+            LocalDate minDate = LocalDate.now().minusYears(100);
+            LocalDate maxDate = LocalDate.now();
+
+            if (purchaseDate.isPresent() && (purchaseDate.get().isBefore(minDate) || purchaseDate.get().isAfter(maxDate))) {
+                throw new IllegalArgumentException("purchaseDate must be between " + minDate + " and " + maxDate + ".");
+            }
+        }
+
+        if (store == null) {
+            throw new IllegalArgumentException("store cannot be null.");
+        } else if (store.isPresent() && store.get().isBlank()) {
+            throw new IllegalArgumentException("store cannot be blank.");
         }
     }
 
