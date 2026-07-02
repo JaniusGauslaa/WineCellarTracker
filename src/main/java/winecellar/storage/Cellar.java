@@ -5,12 +5,17 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.Comparator;
 import winecellar.model.Bottle;
+import winecellar.model.TastingNote;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Cellar implements CellarRepository {
     private final List<Bottle> bottles;
+    private final Map<Bottle, List<TastingNote>> tastingNotes;
 
     public Cellar() {
         bottles = new ArrayList<Bottle>();
+        tastingNotes = new HashMap<>();
     }
 
     public void add(Bottle bottle) {
@@ -48,5 +53,25 @@ public class Cellar implements CellarRepository {
             throw new IllegalArgumentException("The number you chose does not correspond to a bottle in your cellar.");
         }
         bottles.remove(index);
+    }
+
+    public void addTastingNote(int bottleIndex, TastingNote tastingNote) {
+        if (bottleIndex < 0 || bottleIndex >= bottles.size()) {
+            throw new IllegalArgumentException("The number you chose does not correspond to a bottle in your cellar.");
+        }
+
+        Bottle bottle = bottles.get(bottleIndex);
+
+        tastingNotes.computeIfAbsent(bottle, k -> new ArrayList<>()).add(tastingNote);
+    }
+
+    public List<TastingNote> getTastingNotes(int bottleIndex) {
+        if (bottleIndex < 0 || bottleIndex >= bottles.size()) {
+            throw new IllegalArgumentException("The number you chose does not correspond to a bottle in your cellar.");
+        }
+
+        Bottle bottle = bottles.get(bottleIndex);
+
+        return tastingNotes.getOrDefault(bottle, List.of());
     }
 }   

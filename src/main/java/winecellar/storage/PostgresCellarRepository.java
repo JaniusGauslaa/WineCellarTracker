@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 import winecellar.model.Bottle;
+import winecellar.model.TastingNote;
 import winecellar.model.WineType;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
@@ -253,6 +254,90 @@ public class PostgresCellarRepository implements CellarRepository {
         List<Bottle> bottlesCopy = new ArrayList<>(allBottles());
         bottlesCopy.sort(comparator);
         return bottlesCopy;
+    }
+
+    public void addTastingNote(int bottleIndex, TastingNote tastingNote) {
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bottles")) {
+            ResultSet rs = stmt.executeQuery();
+            int index = 0;
+            int id = -1;
+
+            while (rs.next()) {
+                if (bottleIndex == index) {
+                    id = rs.getInt("id");
+                    break;
+                }
+                index++;
+            }
+
+            if (id == -1) {
+                throw new IllegalArgumentException("Your index does not correspond to a bottle in your cellar.");
+            }
+
+            try (PreparedStatement addStmt = conn.prepareStatement("INSERT INTO tasting_notes (bottle_id, note, date, rating) VALUES (?, ?, ?, ?)")) {
+                addStmt.setInt(1, id);
+                addStmt.setString(2, tastingNote.note());
+                addStmt.setDate(3, Date.valueOf(tastingNote.date()));
+
+                if (tastingNote.rating().isPresent()) {
+                    addStmt.setInt(4, tastingNote.rating().get());
+                } else {
+                    addStmt.setNull(4, Types.INTEGER);
+                }
+
+                addStmt.executeUpdate();
+
+            } catch (SQLException e) {
+                throw new RuntimeException();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public List<TastingNote> getTastingNotes(int bottleIndex) {
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bottles")) {
+            ResultSet rs = stmt.executeQuery();
+            int index = 0;
+            int id = -1;
+
+            while (rs.next()) {
+                if (bottleIndex == index) {
+                    id = rs.getInt("id");
+                    break;
+                }
+                index++;
+            }
+
+            if (id == -1) {
+                throw new IllegalArgumentException("Your index does not correspond to a bottle in your cellar.");
+            }
+
+            try (PreparedStatement idStmt = conn.prepareStatement("SELECT * FROM tasting_notes WHERE bottle_id = ?")) {
+                idStmt.setInt(1, id);
+                ResultSet rsFinal = idStmt.executeQuery();
+                List<TastingNote> tastingNotes = new ArrayList<>();
+
+                while (rsFinal.next()) {
+                    String note = rsFinal.getString("note");
+                    LocalDate date = rsFinal.getDate("date").toLocalDate();
+
+                    int ratingValue = rsFinal.getInt("rating");
+                    Optional<Integer> rating = rsFinal.wasNull() ? Optional.empty() : Optional.of(ratingValue);
+
+                    tastingNotes.add(new TastingNote(note, date, rating));
+                }
+
+                return tastingNotes;
+            } catch (SQLException e) {
+                throw new RuntimeException();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
     }
 
 }

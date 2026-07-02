@@ -1,10 +1,10 @@
 package winecellar.cli;
 import java.util.Scanner;
 import winecellar.model.Bottle;
+import winecellar.model.TastingNote;
 import winecellar.model.WineType;
 import winecellar.storage.CellarRepository;
 import winecellar.storage.PostgresCellarRepository;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -21,7 +21,7 @@ public class Main {
         boolean isRunning = true;
 
         System.out.println("Hello, welcome to your wine cellar!");
-        System.out.println("Here are the available commands: list, add, remove, search, sort, quit");
+        System.out.println("Here are the available commands: list, add, remove, search, sort, quit, add-note, view-notes");
         System.out.println("");
 
         while (isRunning) {
@@ -227,6 +227,76 @@ public class Main {
                     System.out.println("Here are your bottles sorted by " + sortType + ":");
                     for (Bottle bottle : sortedBottles) {
                         System.out.println(bottle);
+                    }
+                    break;
+                case "add-note":
+                    try {
+                        if (myCellar.allBottles().isEmpty()) {
+                            System.out.println("Your cellar is empty.");
+                            break;
+                        }
+
+                        List<Bottle> myBottles = myCellar.allBottles();
+                        for (int i = 0; i < myBottles.size(); i++) {
+                            System.out.println(i + 1 + ". " + myBottles.get(i));
+                        }
+
+                        System.out.print("Add note to bottle #: ");
+                        String bottleNumber = input.nextLine();
+                        int bottleIndex = Integer.parseInt(bottleNumber) - 1;
+
+                        System.out.print("Type note: ");
+                        String note = input.nextLine();
+
+                        LocalDate date = LocalDate.now();
+
+                        System.out.print("Rating for this tasting (1-100), press enter to skip: ");
+                        String ratingString = input.nextLine();
+                        Optional<Integer> rating = ratingString.isBlank() ? Optional.empty() : Optional.of(Integer.valueOf(ratingString));
+
+                        TastingNote tastingNote = new TastingNote(note, date, rating);
+                        myCellar.addTastingNote(bottleIndex, tastingNote);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Enter a valid number.");
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+                case "view-notes":
+                    try {
+                        if (myCellar.allBottles().isEmpty()) {
+                            System.out.println("Your cellar is empty.");
+                            break;
+                        }
+
+                        List<Bottle> myBottles = myCellar.allBottles();
+                        for (int i = 0; i < myBottles.size(); i++) {
+                            System.out.println(i + 1 + ". " + myBottles.get(i));
+                        }
+
+                        System.out.print("View notes for bottle #: ");
+                        String bottleNumber = input.nextLine();
+                        int bottleIndex = Integer.parseInt(bottleNumber) - 1;
+
+                        List<TastingNote> tastingNotes = myCellar.getTastingNotes(bottleIndex);
+
+                        if (tastingNotes.isEmpty()) {
+                            System.out.println("No tasting notes for this bottle.");
+                            break;
+                        }
+
+                        for (TastingNote tn : tastingNotes) {
+                            if (tn.rating().isPresent()) {
+                                System.out.println(tn.date() + ": " + tn.note() + " Rating: " + tn.rating().get());
+                            } else {
+                                System.out.println(tn.date() + ": " + tn.note() + " - No rating.");
+                            }
+                            
+                        }
+                    } catch (NumberFormatException e) {
+                        System.out.println("Enter a valid number.");
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
                     }
                     break;
                 case "quit":
