@@ -4,8 +4,12 @@ import winecellar.model.Bottle;
 import winecellar.model.TastingNote;
 import winecellar.model.WineType;
 import winecellar.model.BottleStatus;
+import winecellar.model.Location;
 import winecellar.storage.CellarRepository;
+import winecellar.storage.LocationRepository;
 import winecellar.storage.PostgresCellarRepository;
+import winecellar.storage.PostgresLocationRepository;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -17,12 +21,13 @@ public class Main {
 
     public static void main(String[] args) {  
         CellarRepository myCellar = new PostgresCellarRepository("jdbc:postgresql://localhost/winecellar");
+        LocationRepository myLocations = new PostgresLocationRepository("jdbc:postgresql://localhost/winecellar");
 
         Scanner input = new Scanner(System.in);
         boolean isRunning = true;
 
         System.out.println("Hello, welcome to your wine cellar!");
-        System.out.println("Here are the available commands: list, add, remove, search, sort, quit, add-note, view-notes, update-status");
+        System.out.println("Here are the available commands: list, add, remove, search, sort, quit, add-note, view-notes, update-status, add-location, view-locations, assign-location");
         System.out.println("");
 
         while (isRunning) {
@@ -80,7 +85,7 @@ public class Main {
                         String storeString = input.nextLine();
                         Optional<String> store = storeString.isBlank() ? Optional.empty() : Optional.of(storeString);
 
-                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear, price, purchaseDate, store, new BottleStatus.InCellar());
+                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear, price, purchaseDate, store, new BottleStatus.InCellar(), Optional.empty(), Optional.empty());
                         myCellar.add(bottle);
                     } catch (NumberFormatException e) {
                         System.out.println("Please enter a valid number.");
@@ -373,6 +378,89 @@ public class Main {
                         System.out.println(e.getMessage());
                     } catch (DateTimeParseException e) {
                         System.out.println("Please input date in valid format (YYYY-MM-DD).");
+                    }
+                    break;
+                case "add-location":
+                    try {
+                        System.out.print("Name for location: ");
+                        String name = input.nextLine();
+
+                        System.out.print("Description for location, press enter to skip: ");
+                        String descriptionValue = input.nextLine();
+
+                        Optional<String> description = descriptionValue.isBlank() ? Optional.empty() : Optional.of(descriptionValue);
+
+                        Location location = new Location(name, description);
+                        myLocations.addLocation(location);
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+                case "view-locations":
+                    try {
+                        if (myLocations.allLocations().isEmpty()) {
+                            System.out.println("You have no locations yet.");
+                            break;
+                        }
+
+                        List<Location> locations = myLocations.allLocations();
+                        for (Location l : locations) {
+                            System.out.println(l);
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    }
+                    break;
+                case "assign-location":
+                    try {
+                        if (myCellar.allBottles().isEmpty()) {
+                            System.out.println("Your cellar is empty.");
+                            break;
+                        }
+
+                        List<Bottle> myBottles = myCellar.allBottles();
+                        for (int i = 0; i < myBottles.size(); i++) {
+                            System.out.println(i + 1 + ". " + myBottles.get(i));
+                        }
+
+                        System.out.print("Assign location to bottle #: ");
+                        String bottleNumber = input.nextLine();
+
+                        int bottleIndex = Integer.parseInt(bottleNumber) - 1;
+
+                        try {
+                            if (myLocations.allLocations().isEmpty()) {
+                                System.out.println("You have no locations yet.");
+                                break;
+                            }
+
+                            List<Location> locations = myLocations.allLocations();
+                            for (int i = 0; i < locations.size(); i++) {
+                                System.out.println(i + 1 + ". " + locations.get(i));
+                            }
+
+                            System.out.print("Which location would you like to assign to this bottle #: ");
+                            String locationNumber = input.nextLine();
+
+                            int locationIndex = Integer.parseInt(locationNumber) - 1;
+
+                            try {
+                                System.out.print("Place within location (ex. Rack 3, Shelf 2), press enter to skip: ");
+                                String binValue = input.nextLine();
+
+                                Optional<String> bin = binValue.isBlank() ? Optional.empty() : Optional.of(binValue);
+
+                                int locationId = myLocations.getLocationId(locationIndex);
+
+                                myCellar.updateBottleLocation(bottleIndex, locationId, bin);
+                            } catch (IllegalArgumentException e) {
+                                System.out.println(e.getMessage());
+                            }
+                        } catch (IllegalArgumentException e) {
+                            System.out.println(e.getMessage());
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
                     }
                     break;
                 case "quit":

@@ -8,6 +8,7 @@ import winecellar.model.Bottle;
 import winecellar.model.BottleStatus;
 import winecellar.model.TastingNote;
 import java.util.Map;
+import java.util.Optional;
 import java.util.HashMap;
 
 public class Cellar implements CellarRepository {
@@ -83,7 +84,24 @@ public class Cellar implements CellarRepository {
 
         Bottle bottle = bottles.get(bottleIndex);
 
-        Bottle newBottle = new Bottle(bottle.producer(), bottle.name(), bottle.vintage(), bottle.region(), bottle.type(), bottle.rating(), bottle.readyYear(), bottle.peakYear(), bottle.price(), bottle.purchaseDate(), bottle.store(), status);
+        Bottle newBottle = new Bottle(bottle.producer(), bottle.name(), bottle.vintage(), bottle.region(), bottle.type(), bottle.rating(), bottle.readyYear(), bottle.peakYear(), bottle.price(), bottle.purchaseDate(), bottle.store(), status, bottle.locationId(), bottle.bin());
+
+        List<TastingNote> notes = tastingNotes.remove(bottle);
+        if (notes != null) {
+            tastingNotes.put(newBottle, notes);
+        }
+
+        bottles.set(bottleIndex, newBottle);
+    }
+
+    public void updateBottleLocation(int bottleIndex, int locationId, Optional<String> bin) {
+        if (bottleIndex < 0 || bottleIndex >= bottles.size()) {
+            throw new IllegalArgumentException("The number you chose does not correspond to a bottle in your cellar.");
+        }
+
+        Bottle bottle = bottles.get(bottleIndex);
+
+        Bottle newBottle = new Bottle(bottle.producer(), bottle.name(), bottle.vintage(), bottle.region(), bottle.type(), bottle.rating(), bottle.readyYear(), bottle.peakYear(), bottle.price(), bottle.purchaseDate(), bottle.store(), bottle.status(), Optional.of(locationId), bin);
 
         List<TastingNote> notes = tastingNotes.remove(bottle);
         if (notes != null) {

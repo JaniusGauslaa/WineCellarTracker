@@ -3,7 +3,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 
-public record Bottle(String producer, String name, int vintage, String region, WineType type, Optional<Integer> rating, Optional<Integer> readyYear, Optional<Integer> peakYear, Optional<BigDecimal> price, Optional<LocalDate> purchaseDate, Optional<String> store, BottleStatus status) {
+public record Bottle(String producer, String name, int vintage, String region, WineType type, Optional<Integer> rating, Optional<Integer> readyYear, Optional<Integer> peakYear, Optional<BigDecimal> price, Optional<LocalDate> purchaseDate, Optional<String> store, BottleStatus status, Optional<Integer> locationId, Optional<String> bin) {
 
     public Bottle {
         int currentYear = java.time.Year.now().getValue();
@@ -91,6 +91,16 @@ public record Bottle(String producer, String name, int vintage, String region, W
 
         if (status == null) {
             throw new IllegalArgumentException("status cannot be null.");
+        }
+
+        if (locationId == null) {
+            throw new IllegalArgumentException("locationId cannot be null.");
+        }
+
+        if (bin == null) {
+            throw new IllegalArgumentException("bin cannot be null.");
+        } else if (bin.isPresent() && bin.get().isBlank()) {
+            throw new IllegalArgumentException("bin cannot be blank.");
         }
     }
 

@@ -26,7 +26,7 @@ public class PostgresCellarRepository implements CellarRepository {
     public void add(Bottle bottle) {
         try (Connection conn = DriverManager.getConnection(url);
              PreparedStatement stmt = conn.prepareStatement(
-             "INSERT INTO bottles (producer, name, vintage, region, type, rating, ready_year, peak_year, price, purchase_date, store, status, status_date, status_price, status_reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+             "INSERT INTO bottles (producer, name, vintage, region, type, rating, ready_year, peak_year, price, purchase_date, store, status, status_date, status_price, status_reason, location_id, bin) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setString(1, bottle.producer());
             stmt.setString(2, bottle.name());
             stmt.setInt(3, bottle.vintage());
@@ -97,6 +97,18 @@ public class PostgresCellarRepository implements CellarRepository {
                 
             }
 
+            if (bottle.locationId().isPresent()) {
+                stmt.setInt(16, bottle.locationId().get());
+            } else {
+                stmt.setNull(16, Types.INTEGER);
+            }
+
+            if (bottle.bin().isPresent()) {
+                stmt.setString(17, bottle.bin().get());
+            } else {
+                stmt.setNull(17, Types.VARCHAR);
+            }
+
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -160,7 +172,13 @@ public class PostgresCellarRepository implements CellarRepository {
 
                 }
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status);
+                int locationIdValue = rs.getInt("location_id");
+                Optional<Integer> locationId = rs.wasNull() ? Optional.empty() : Optional.of(locationIdValue);
+
+                String binValue = rs.getString("bin");
+                Optional<String> bin = binValue == null ? Optional.empty() : Optional.of(binValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status, locationId, bin);
                 bottles.add(bottle);
             }
             return bottles;
@@ -258,7 +276,13 @@ public class PostgresCellarRepository implements CellarRepository {
 
                 }
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status);
+                int locationIdValue = rs.getInt("location_id");
+                Optional<Integer> locationId = rs.wasNull() ? Optional.empty() : Optional.of(locationIdValue);
+
+                String binValue = rs.getString("bin");
+                Optional<String> bin = binValue == null ? Optional.empty() : Optional.of(binValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status, locationId, bin);
                 bottles.add(bottle);
             }
 
@@ -327,7 +351,13 @@ public class PostgresCellarRepository implements CellarRepository {
 
                 }
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status);
+                int locationIdValue = rs.getInt("location_id");
+                Optional<Integer> locationId = rs.wasNull() ? Optional.empty() : Optional.of(locationIdValue);
+
+                String binValue = rs.getString("bin");
+                Optional<String> bin = binValue == null ? Optional.empty() : Optional.of(binValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status, locationId, bin);
                 bottles.add(bottle);
             }
 
@@ -396,7 +426,13 @@ public class PostgresCellarRepository implements CellarRepository {
 
                 }
 
-                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status);
+                int locationIdValue = rs.getInt("location_id");
+                Optional<Integer> locationId = rs.wasNull() ? Optional.empty() : Optional.of(locationIdValue);
+
+                String binValue = rs.getString("bin");
+                Optional<String> bin = binValue == null ? Optional.empty() : Optional.of(binValue);
+
+                Bottle bottle = new Bottle(rs.getString("producer"), rs.getString("name"), rs.getInt("vintage"), rs.getString("region"), WineType.valueOf(rs.getString("type")), rating, readyYear, peakYear, price, purchaseDate, store, status, locationId, bin);
                 bottles.add(bottle);
             }
 
@@ -557,6 +593,47 @@ public class PostgresCellarRepository implements CellarRepository {
                 throw new RuntimeException();
             }
 
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
+    }
+
+    public void updateBottleLocation(int bottleIndex, int locationId, Optional<String> bin) {
+        try (Connection conn = DriverManager.getConnection(url);
+             PreparedStatement stmt = conn.prepareStatement("SELECT * FROM bottles")) {
+            ResultSet rs = stmt.executeQuery();
+
+            int id = -1;
+            int index = 0;
+            
+            while (rs.next()) {
+                if (bottleIndex == index) {
+                    id = rs.getInt("id");
+                    break;
+                }
+                index++;
+            }
+
+            if (id == -1) {
+                throw new IllegalArgumentException("Your index does not correspond to a bottle in your cellar.");
+            }
+
+            try (PreparedStatement updateStmt = conn.prepareStatement("UPDATE bottles SET location_id = ?, bin = ? WHERE id = ?")) {
+                updateStmt.setInt(1, locationId);
+
+                if (bin.isPresent()) {
+                    updateStmt.setString(2, bin.get());
+                } else {
+                    updateStmt.setNull(2, Types.VARCHAR);
+                }
+
+                updateStmt.setInt(3, id);
+
+                updateStmt.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException();
+            }
+            
         } catch (SQLException e) {
             throw new RuntimeException();
         }
