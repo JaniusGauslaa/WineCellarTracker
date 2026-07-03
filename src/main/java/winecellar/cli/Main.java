@@ -3,6 +3,7 @@ import java.util.Scanner;
 import winecellar.model.Bottle;
 import winecellar.model.TastingNote;
 import winecellar.model.WineType;
+import winecellar.model.BottleStatus;
 import winecellar.storage.CellarRepository;
 import winecellar.storage.PostgresCellarRepository;
 import java.math.BigDecimal;
@@ -21,7 +22,7 @@ public class Main {
         boolean isRunning = true;
 
         System.out.println("Hello, welcome to your wine cellar!");
-        System.out.println("Here are the available commands: list, add, remove, search, sort, quit, add-note, view-notes");
+        System.out.println("Here are the available commands: list, add, remove, search, sort, quit, add-note, view-notes, update-status");
         System.out.println("");
 
         while (isRunning) {
@@ -79,7 +80,7 @@ public class Main {
                         String storeString = input.nextLine();
                         Optional<String> store = storeString.isBlank() ? Optional.empty() : Optional.of(storeString);
 
-                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear, price, purchaseDate, store);
+                        Bottle bottle = new Bottle(producer, name, vintage, region, type, rating, readyYear, peakYear, price, purchaseDate, store, new BottleStatus.InCellar());
                         myCellar.add(bottle);
                     } catch (NumberFormatException e) {
                         System.out.println("Please enter a valid number.");
@@ -297,6 +298,81 @@ public class Main {
                         System.out.println("Enter a valid number.");
                     } catch (IllegalArgumentException e) {
                         System.out.println(e.getMessage());
+                    }
+                    break;
+                case "update-status":
+                    try {
+                        if (myCellar.allBottles().isEmpty()) {
+                            System.out.println("Your cellar is empty.");
+                            break;
+                        }
+
+                        List<Bottle> myBottles = myCellar.allBottles();
+                        for (int i = 0; i < myBottles.size(); i++) {
+                            System.out.println(i + 1 + ". " + myBottles.get(i));
+                        }
+
+                        System.out.print("Update status for bottle #: ");
+                        String bottleNumber = input.nextLine();
+                        int bottleIndex = Integer.parseInt(bottleNumber) - 1;
+
+                        System.out.print("What would you like to update the status to (in-cellar, consumed, sold, removed): ");
+                        String statusInput = input.nextLine();
+
+                        BottleStatus status;
+                        String dateString;
+                        LocalDate date;
+                        String priceString;
+                        BigDecimal price;
+                        String reasonString;
+                        Optional<String> reason;
+
+                        switch (statusInput) {
+                            case "in-cellar":
+                                status = new BottleStatus.InCellar();
+
+                                break;
+                            case "consumed":
+                                System.out.print("Consumed date (YYYY-MM-DD): ");
+                                dateString = input.nextLine();
+                                date = LocalDate.parse(dateString);
+
+                                status = new BottleStatus.Consumed(date);
+
+                                break;
+                            case "sold":
+                                System.out.print("Sold date (YYYY-MM-DD): ");
+                                dateString = input.nextLine();
+                                date = LocalDate.parse(dateString);
+
+                                System.out.print("Sold price (239.99): ");
+                                priceString = input.nextLine();
+                                price = new BigDecimal(priceString);
+
+                                status = new BottleStatus.Sold(price, date);
+
+                                break;
+                            case "removed":
+                                System.out.print("Reason for removal, press enter to skip: ");
+                                reasonString = input.nextLine();
+
+                                reason = reasonString.isBlank() ? Optional.empty() : Optional.of(reasonString);
+
+                                status = new BottleStatus.Removed(reason);
+
+                                break;
+                            default:
+                                throw new IllegalArgumentException("Unknown status: " + statusInput);
+                        }
+
+                        myCellar.updateBottleStatus(bottleIndex, status);
+
+                    } catch (NumberFormatException e) {
+                        System.out.println("Enter a valid number.");
+                    } catch (IllegalArgumentException e) {
+                        System.out.println(e.getMessage());
+                    } catch (DateTimeParseException e) {
+                        System.out.println("Please input date in valid format (YYYY-MM-DD).");
                     }
                     break;
                 case "quit":

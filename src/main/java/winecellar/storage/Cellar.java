@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.Comparator;
 import winecellar.model.Bottle;
+import winecellar.model.BottleStatus;
 import winecellar.model.TastingNote;
 import java.util.Map;
 import java.util.HashMap;
@@ -73,5 +74,22 @@ public class Cellar implements CellarRepository {
         Bottle bottle = bottles.get(bottleIndex);
 
         return tastingNotes.getOrDefault(bottle, List.of());
+    }
+
+    public void updateBottleStatus(int bottleIndex, BottleStatus status) {
+        if (bottleIndex < 0 || bottleIndex >= bottles.size()) {
+            throw new IllegalArgumentException("The number you chose does not correspond to a bottle in your cellar.");
+        }
+
+        Bottle bottle = bottles.get(bottleIndex);
+
+        Bottle newBottle = new Bottle(bottle.producer(), bottle.name(), bottle.vintage(), bottle.region(), bottle.type(), bottle.rating(), bottle.readyYear(), bottle.peakYear(), bottle.price(), bottle.purchaseDate(), bottle.store(), status);
+
+        List<TastingNote> notes = tastingNotes.remove(bottle);
+        if (notes != null) {
+            tastingNotes.put(newBottle, notes);
+        }
+
+        bottles.set(bottleIndex, newBottle);
     }
 }   

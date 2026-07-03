@@ -2,6 +2,7 @@ package winecellar.storage;
 import java.util.List;
 import java.util.function.Predicate;
 import winecellar.model.Bottle;
+import winecellar.model.BottleStatus;
 import winecellar.model.TastingNote;
 import java.util.Comparator;
 
@@ -25,4 +26,6 @@ public interface CellarRepository {
     void addTastingNote(int bottleIndex, TastingNote tastingNote);
 
     List<TastingNote> getTastingNotes(int bottleIndex);
+
+    void updateBottleStatus(int bottleIndex, BottleStatus status);
 }
